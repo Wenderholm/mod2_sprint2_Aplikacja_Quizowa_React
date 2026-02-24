@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import StartScreen from "./components/StartScreen";
+import QuestionCard from "./components/QuestionCard";
+import Summary from "./components/Summary";
+import { questions } from "./data/questions";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [stage, setStage] = useState("start"); // 'start' | 'quiz' | 'summary'
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+
+  const startQuiz = () => {
+    setAnswers(Array(questions.length).fill(null));
+    setCurrent(0);
+    setStage("quiz");
+  };
+
+  const handleAnswer = (optionIndex) => {
+    const updated = [...answers];
+    updated[current] = optionIndex;
+    setAnswers(updated);
+    goNext();
+  };
+  const goNext = () => {
+    if (current < questions.length - 1) setCurrent(current + 1);
+    else setStage("summary");
+  };
+
+  const restart = () => {
+    setStage("start");
+    setCurrent(0);
+    setAnswers(Array(questions.length).fill(null));
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div
+      style={{
+        fontFamily: "Arial, sans-serif",
+        padding: 24,
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ width: "100%" }}>
+        {stage === "start" && (
+          <StartScreen title={"JavaScript Quiz"} onStart={startQuiz} />
+        )}
 
-export default App
+        {stage === "quiz" && (
+          <div>
+            <QuestionCard
+              question={questions[current]}
+              index={current}
+              onAnswer={handleAnswer}
+            />
+          </div>
+        )}
+
+        {stage === "summary" && (
+          <Summary
+            questions={questions}
+            answers={answers}
+            onRestart={restart}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
